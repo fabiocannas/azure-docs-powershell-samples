@@ -2,6 +2,13 @@
 $resourceGroup = "myResourceGroup"
 $location = "westeurope"
 $vmName = "myVM"
+$vmSize = "Standard_D4_v3"
+$publisher = "MicrosoftVisualStudio"
+$offer = "visualstudio2019latest"
+$sku = "vs-2019-ent-latest-win10-n"
+
+# Connect to Azure
+Connect-AzAccount
 
 # Create user object
 $cred = Get-Credential -Message "Enter a username and password for the virtual machine."
@@ -10,11 +17,11 @@ $cred = Get-Credential -Message "Enter a username and password for the virtual m
 New-AzResourceGroup -Name $resourceGroup -Location $location
 
 # Create a subnet configuration
-$subnetConfig = New-AzVirtualNetworkSubnetConfig -Name mySubnet -AddressPrefix 192.168.1.0/24
+$subnetConfig = New-AzVirtualNetworkSubnetConfig -Name mySubnet -AddressPrefix 10.0.0.0/24
 
 # Create a virtual network
 $vnet = New-AzVirtualNetwork -ResourceGroupName $resourceGroup -Location $location `
-  -Name MYvNET -AddressPrefix 192.168.0.0/16 -Subnet $subnetConfig
+  -Name MYvNET -AddressPrefix 10.0.0.0/16 -Subnet $subnetConfig
 
 # Create a public IP address and specify a DNS name
 $pip = New-AzPublicIpAddress -ResourceGroupName $resourceGroup -Location $location `
@@ -34,9 +41,9 @@ $nic = New-AzNetworkInterface -Name myNic -ResourceGroupName $resourceGroup -Loc
   -SubnetId $vnet.Subnets[0].Id -PublicIpAddressId $pip.Id -NetworkSecurityGroupId $nsg.Id
 
 # Create a virtual machine configuration
-$vmConfig = New-AzVMConfig -VMName $vmName -VMSize Standard_D1 | `
+$vmConfig = New-AzVMConfig -VMName $vmName -VMSize $vmSize | `
 Set-AzVMOperatingSystem -Windows -ComputerName $vmName -Credential $cred | `
-Set-AzVMSourceImage -PublisherName MicrosoftWindowsServer -Offer WindowsServer -Skus 2016-Datacenter -Version latest | `
+Set-AzVMSourceImage -PublisherName $publisher -Offer $offer -Skus $sku -Version latest | `
 Add-AzVMNetworkInterface -Id $nic.Id
 
 # Create a virtual machine
